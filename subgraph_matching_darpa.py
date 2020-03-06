@@ -91,8 +91,9 @@ class subgraph_matching():
         else:
             for i in np.arange(1, k):
                 j = self.find_parent(B, i)
-                if sum(A[emb[j], :]) > 0:
-                    dist = A[emb[j], :] / sum(A[emb[j], :])
+                if np.sum(A[emb[j], :]) > 0:
+                    dist = A[emb[j], :] / np.sum(A[emb[j], :])
+                    # dist = np.array(dist.todense())[0]
                     y = np.random.choice(np.arange(0, N), p=dist)
                 else:
                     y = emb[j]
