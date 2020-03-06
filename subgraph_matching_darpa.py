@@ -331,12 +331,16 @@ def motif_from_edgelist(motif_edgelist):
 
 def source_adj_from_uclasm_graph(uclasm_graph):
     A = np.array(uclasm_graph.composite_adj.todense())
+    # Flatten multiedges to single edges
+    A[A>1] = 1
     return A
 
 def motif_from_uclasm_graph(uclasm_graph):
     motif = graph.Graph(1)
     motif.edgelist = None
     motif.adj = np.array(uclasm_graph.composite_adj.todense())
+    # Flatten multiedges to single edges
+    motif.adj[motif.adj>1] = 1
     motif.V = uclasm_graph.n_nodes
     motif.MSTedges = motif.primMST()
     motif.MST_adj = motif.edge2adj(motif.MSTedges)
@@ -375,10 +379,10 @@ def test_with_caltech():
 def main():
     # test_with_caltech()
 
-    # Load and test PNNL V6 B0
+    # Load and test PNNL V4 B0
     print("Starting data loading")
     start_time = time.time()
-    tmplts, world = data.pnnl_v6(0)
+    tmplts, world = data.pnnl_v4(0)
     tmplt = tmplts[0]
     world_orig = world.copy()
     print("Loading took {} seconds".format(time.time()-start_time))
