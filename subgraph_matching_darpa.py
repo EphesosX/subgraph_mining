@@ -2,14 +2,15 @@ import numpy as np
 import networkx as nx
 import graph
 
+from scipy.sparse import csr_matrix
 
 DEBUG = False
 
 
 class subgraph_matching():
     def __init__(self,
-                 source,
-                 motif_edgelist,
+                 source_adj,
+                 motif,
                  n_components=100,
                  MCMC_iterations=500,
                  sub_iterations=100,
@@ -31,49 +32,24 @@ class subgraph_matching():
         Then our MC will explore the space of the homomorphic copies of T, and we can ask whether
         the induced subgraph is actually an isomorphic copy of F
         '''
-        self.source = source
         self.n_components = n_components
         self.MCMC_iterations = MCMC_iterations
-        self.motif_edgelist = motif_edgelist # list of edges of the motif what we want to find inside the worlds graph G
 
-        # read in networks
-        A = self.read_networks(source)
-        self.A = A
-        # read in and set up motif and its spanning tree
-        motif = graph.Graph(1)
-        motif.edgelist = self.motif_edgelist
-        motif.adj = motif.edge2adj(motif.edgelist)
-        motif.V = len(motif.adj)
-        motif.MSTedges = motif.primMST()
-        motif.MST_adj = motif.edge2adj(motif.MSTedges)
+        self.A = source_adj
         self.motif = motif
 
-    def red_networks_as_graph(self, path):
-        edgelist = np.genfromtxt(path, delimiter=',', dtype=int)
-        edgelist = edgelist.tolist()
-        G = nx.Graph(edgelist)
-        return G
-
-    def read_networks(self, path):
-        G = nx.read_edgelist(path, delimiter=',')
-        A = nx.to_numpy_matrix(G)
-        A = np.squeeze(np.asarray(A))
-        print(A.shape)
-        # A = A / np.max(A)
-        return A
-
-    def get_motif_adj(self):
-        # get adjacency matrix of the motif from its edgelist
-        E = self.motif_edgelist
-        print('E', E)
-        size = len(set([n for e in E for n in e]))
-        # make an empty adjacency list
-        adjacency = [[0] * size for _ in range(size)]
-        # populate the list for each edge
-        for sink, source in E:
-            adjacency[sink][source] = 1
-            adjacency[source][sink] = 1
-        return np.asarray(adjacency)
+    # def get_motif_adj(self):
+    #     # get adjacency matrix of the motif from its edgelist
+    #     E = self.motif_edgelist
+    #     print('E', E)
+    #     size = len(set([n for e in E for n in e]))
+    #     # make an empty adjacency list
+    #     adjacency = [[0] * size for _ in range(size)]
+    #     # populate the list for each edge
+    #     for sink, source in E:
+    #         adjacency[sink][source] = 1
+    #         adjacency[source][sink] = 1
+    #     return np.asarray(adjacency)
 
     def path_adj(self, k1, k2):
         # generates adjacency matrix for the path motif of k1 left nodes and k2 right nodes
@@ -319,12 +295,38 @@ class subgraph_matching():
             # print('iteration %i out of %i' % (step, iterations))
         return subgraph_hom_list, subgraph_iso_list
 
-def main():
+def read_networks_as_graph(path):
+    edgelist = np.genfromtxt(path, delimiter=',', dtype=int)
+    edgelist = edgelist.tolist()
+    G = nx.Graph(edgelist)
+    return G
+
+def read_networks(path):
+    G = nx.read_edgelist(path, delimiter=',')
+    A = nx.to_numpy_matrix(G)
+    A = np.squeeze(np.asarray(A))
+    # A = csr_matrix(A)
+    print(A.shape)
+    # A = A / np.max(A)
+    return A
+
+def motif_from_edgelist(motif_edgelist):
+    motif = graph.Graph(1)
+    motif.edgelist = motif_edgelist
+    motif.adj = motif.edge2adj(motif.edgelist)
+    motif.V = len(motif.adj)
+    motif.MSTedges = motif.primMST()
+    motif.MST_adj = motif.edge2adj(motif.MSTedges)
+    return motif
+
+def test_with_caltech():
     ### set motif edge list
     # motif_E = [[0,1], [1,2], [0,2]]  # triangle
     # motif_E = [[0, 1], [1, 2], [0, 2], [1, 3], [3, 4]]  # triangle
     motif_E = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]]  # cycle
-    print('motif_edgelist', motif_E)
+    # print('motif_edgelist', motif_E)
+
+    # Load template
 
     ### Create list of file names
     myfolder = "Data/Facebook/SchoolDataPythonFormat/sub_fb_networks"
@@ -337,8 +339,8 @@ def main():
         path = directory + school
         print('Currently finding copies of the motif from ' + school)
 
-        subgraph_mining = subgraph_matching(source=path,
-                                            motif_edgelist=motif_E,
+        subgraph_mining = subgraph_matching(source_adj=read_networks(path),
+                                            motif=motif_from_edgelist(motif_E),
                                             MCMC_iterations=5000)  # MCMC steps (macro, grow with size of ntwk)
 
         subgraph_list = subgraph_mining.find_subgraph_hom(iterations=1000)
@@ -347,6 +349,8 @@ def main():
 
         # return A_recons, A_overlap_count
 
+def main():
+    test_with_caltech()
 
 if __name__ == '__main__':
     main()
