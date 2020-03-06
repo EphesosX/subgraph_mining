@@ -110,7 +110,7 @@ class Graph():
 
 '''
 ### example usage
- 
+
 g = Graph(5)
 g.graph = [[0, 2, 0, 6, 0],
            [2, 0, 3, 8, 5],
