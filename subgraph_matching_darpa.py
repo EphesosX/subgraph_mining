@@ -306,12 +306,16 @@ class subgraph_matching():
         return subgraph_hom_list, subgraph_iso_list
 
 def read_networks_as_graph(path):
+    """ Given the path to an edgelist file, read in the edgelist
+    Returns a NetworkX graph object G """
     edgelist = np.genfromtxt(path, delimiter=',', dtype=int)
     edgelist = edgelist.tolist()
     G = nx.Graph(edgelist)
     return G
 
 def read_networks(path):
+    """ Given the path to an edgelist file, read in the edgelist
+    Returns the adjacency matrix as a NumPy array A """
     G = nx.read_edgelist(path, delimiter=',')
     A = nx.to_numpy_matrix(G)
     A = np.squeeze(np.asarray(A))
@@ -321,6 +325,9 @@ def read_networks(path):
     return A
 
 def motif_from_edgelist(motif_edgelist):
+    """ Given the path to an edgelist file, read in the edgelist
+    Create the motif and compute its minimal spanning tree
+    Returns a graph object motif """
     motif = graph.Graph(1)
     motif.edgelist = motif_edgelist
     motif.adj = motif.edge2adj(motif.edgelist)
@@ -330,12 +337,17 @@ def motif_from_edgelist(motif_edgelist):
     return motif
 
 def source_adj_from_uclasm_graph(uclasm_graph):
+    """ Given a uclasm graph object, convert it to an adjacency matrix
+    Returns the adjacency matrix as a NumPy array A """
     A = np.array(uclasm_graph.composite_adj.todense())
     # Flatten multiedges to single edges
     A[A>1] = 1
     return A
 
 def motif_from_uclasm_graph(uclasm_graph):
+    """ Given a uclasm graph object, convert it to an adjacency matrix
+    Create the motif and compute its minimal spanning tree
+    Returns a graph object motif """
     motif = graph.Graph(1)
     motif.edgelist = None
     motif.adj = np.array(uclasm_graph.composite_adj.todense())
