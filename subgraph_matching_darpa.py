@@ -342,7 +342,23 @@ def source_adj_from_uclasm_graph(uclasm_graph):
     A = np.array(uclasm_graph.composite_adj.todense())
     # Flatten multiedges to single edges
     A[A>1] = 1
+    # np.save("world_adj.npy", A)
     return A
+
+def motif_from_adj(adj):
+    """ Given an adjacency matrix adj in NumPy array format, create the motif
+    and compute its minimal spanning tree
+    Returns a graph object motif """
+    motif = graph.Graph(1)
+    motif.edgelist = None
+    motif.adj = adj
+    # Flatten multiedges to single edges
+    motif.adj[motif.adj>1] = 1
+    # np.save("motif_adj.npy", motif.adj)
+    motif.V = len(adj)
+    motif.MSTedges = motif.primMST()
+    motif.MST_adj = motif.edge2adj(motif.MSTedges)
+    return motif
 
 def motif_from_uclasm_graph(uclasm_graph):
     """ Given a uclasm graph object, convert it to an adjacency matrix
@@ -353,6 +369,7 @@ def motif_from_uclasm_graph(uclasm_graph):
     motif.adj = np.array(uclasm_graph.composite_adj.todense())
     # Flatten multiedges to single edges
     motif.adj[motif.adj>1] = 1
+    np.save("motif_adj.npy", motif.adj)
     motif.V = uclasm_graph.n_nodes
     motif.MSTedges = motif.primMST()
     motif.MST_adj = motif.edge2adj(motif.MSTedges)
