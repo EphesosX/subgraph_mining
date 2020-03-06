@@ -4,6 +4,13 @@ import graph
 
 from scipy.sparse import csr_matrix
 
+import sys
+sys.path.append("../master")
+
+from utils import data
+import uclasm
+import time
+
 DEBUG = False
 
 
@@ -91,6 +98,8 @@ class subgraph_matching():
         else:
             for i in np.arange(1, k):
                 j = self.find_parent(B, i)
+                print(emb.shape)
+                print(j, A.shape, emb[j])
                 if np.sum(A[emb[j], :]) > 0:
                     dist = A[emb[j], :] / np.sum(A[emb[j], :])
                     # dist = np.array(dist.todense())[0]
@@ -320,6 +329,19 @@ def motif_from_edgelist(motif_edgelist):
     motif.MST_adj = motif.edge2adj(motif.MSTedges)
     return motif
 
+def source_adj_from_uclasm_graph(uclasm_graph):
+    A = np.array(uclasm_graph.composite_adj.todense())
+    return A
+
+def motif_from_uclasm_graph(uclasm_graph):
+    motif = graph.Graph(1)
+    motif.edgelist = None
+    motif.adj = np.array(uclasm_graph.composite_adj.todense())
+    motif.V = uclasm_graph.n_nodes
+    motif.MSTedges = motif.primMST()
+    motif.MST_adj = motif.edge2adj(motif.MSTedges)
+    return motif
+
 def test_with_caltech():
     ### set motif edge list
     # motif_E = [[0,1], [1,2], [0,2]]  # triangle
@@ -351,7 +373,40 @@ def test_with_caltech():
         # return A_recons, A_overlap_count
 
 def main():
-    test_with_caltech()
+    # test_with_caltech()
+
+    # Load and test PNNL V6 B0
+    print("Starting data loading")
+    start_time = time.time()
+    tmplts, world = data.pnnl_v6(0)
+    tmplt = tmplts[0]
+    world_orig = world.copy()
+    print("Loading took {} seconds".format(time.time()-start_time))
+
+    # print("Starting filters")
+    # start_time = time.time()
+    # tmplt, world, candidates = uclasm.run_filters(tmplt, world,
+    #                                               filters=uclasm.all_filters,
+    #                                               verbose=True)
+    # print("Filtering took {} seconds".format(time.time()-start_time))
+    #
+    # print("Starting isomorphism count")
+    # start_time = time.time()
+    # count = uclasm.count_isomorphisms(tmplt, world, candidates=candidates)
+    # print("There are {} isomorphisms.".format(count))
+    # print("Counting took {} seconds".format(time.time()-start_time))
+
+    print("Starting homomorphism search with Glauber chain")
+    start_time = time.time()
+
+    subgraph_mining = subgraph_matching(source_adj=source_adj_from_uclasm_graph(world_orig),
+                                        motif=motif_from_uclasm_graph(tmplt),
+                                        MCMC_iterations=50)  # MCMC steps (macro, grow with size of ntwk)
+
+    subgraph_list = subgraph_mining.find_subgraph_hom(iterations=10)
+
+    print("Homomorphism search took {} seconds".format(time.time()-start_time))
+
 
 if __name__ == '__main__':
     main()
