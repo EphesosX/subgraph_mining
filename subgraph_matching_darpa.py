@@ -17,8 +17,9 @@ DEBUG = False
 class subgraph_matching():
     def __init__(self,
                  source_adj,
-                 motif_edgelist,
-                 motif_adj=None,
+                 motif,
+                 # motif_edgelist,
+                 # motif_adj=None,
                  n_components=100,
                  MCMC_iterations=500,
                  is_Glauber=True):
@@ -35,10 +36,10 @@ class subgraph_matching():
         self.is_Glauber = is_Glauber
 
         # read in and set up motif and its spanning tree
-        if motif_edgelist is None:
-            motif = motif_from_adj(motif_adj)
-        else:
-            motif = motif_from_edgelist(motif_edgelist)
+        # if motif_edgelist is None:
+        #     motif = motif_from_adj(motif_adj)
+        # else:
+        #     motif = motif_from_edgelist(motif_edgelist)
         self.motif = motif
         # self.motif_adj = motif_adj
 
@@ -307,7 +308,7 @@ def motif_from_edgelist(motif_edgelist):
 def source_adj_from_uclasm_graph(uclasm_graph):
     """ Given a uclasm graph object, convert it to an adjacency matrix
     Returns the adjacency matrix as a NumPy array A """
-    A = np.array(uclasm_graph.composite_adj.todense())
+    A = np.array(uclasm_graph.sym_composite_adj.todense())
     # Flatten multiedges to single edges
     A[A>1] = 1
     return A
@@ -335,7 +336,7 @@ def motif_from_uclasm_graph(uclasm_graph):
     Returns a graph object motif """
     motif = graph.Graph(1)
     motif.edgelist = None
-    motif.adj = np.array(uclasm_graph.composite_adj.todense())
+    motif.adj = np.array(uclasm_graph.sym_composite_adj.todense())
     # Flatten multiedges to single edges
     motif.adj[motif.adj>1] = 1
     motif.V = uclasm_graph.n_nodes
@@ -363,7 +364,7 @@ def test_with_caltech():
         print('Currently finding copies of the motif from ' + school)
 
         subgraph_mining = subgraph_matching(source_adj=read_networks(path),
-                                            motif_edgelist= None, # motif_E,,
+                                            motif=motif_from_edgelist(motif_E), 
                                             MCMC_iterations=5000)  # MCMC steps (macro, grow with size of ntwk)
 
         subgraph_list = subgraph_mining.find_subgraph_hom(iterations=1000)
@@ -403,8 +404,7 @@ def main():
 
 
     subgraph_mining = subgraph_matching(source_adj=source_adj_from_uclasm_graph(world_orig), #np.load("world_adj.npy")
-                                        motif_edgelist= None, # motif_E,
-                                        motif_adj=motif_from_uclasm_graph(tmplt), #np.load("motif_adj.npy").astype(int),
+                                        motif=motif_from_uclasm_graph(tmplt), #motif_from_adj(np.load("motif_adj.npy").astype(int)),
                                         MCMC_iterations=50,
                                         is_Glauber=True)  # MCMC steps (macro, grow with size of ntwk)
 
