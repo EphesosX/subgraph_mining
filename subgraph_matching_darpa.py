@@ -270,7 +270,7 @@ class subgraph_matching():
                 count_hom += 1
                 if self.check_injectivity(emb):
                     subgraph_iso_list.append(emb)
-                    print('%i th copy of isomorhpism found=' % count_iso, emb)
+                    print('%i th copy of isomorphism found=' % count_iso, emb)
                     count_iso += 1
             # print('iteration %i out of %i' % (step, iterations))
         return subgraph_hom_list, subgraph_iso_list
