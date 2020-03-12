@@ -244,8 +244,8 @@ class subgraph_matching():
         N = A.shape[0]
         B = np.asarray(self.motif.MST_adj).astype(int)  # adjacency matrix of a spanning tree of the motif
         C = np.asarray(self.motif.adj).astype(int)  # full adjacency matrix of the motif
-        # x0 = np.random.choice(np.arange(0, N))
-        x0 = 12000
+        x0 = np.random.choice(np.arange(0, N))
+        # x0 = 12000
         emb = self.tree_sample(B, x0)  # initialize embedding of B into A
 
         subgraph_hom_list = []  # node list of homomorphic copies of the motif we found
