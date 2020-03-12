@@ -311,6 +311,7 @@ def source_adj_from_uclasm_graph(uclasm_graph):
     A = np.array(uclasm_graph.sym_composite_adj.todense())
     # Flatten multiedges to single edges
     A[A>1] = 1
+    np.save("world_adj.npy", A)
     return A
 
 def motif_from_adj(adj):
@@ -339,6 +340,7 @@ def motif_from_uclasm_graph(uclasm_graph):
     motif.adj = np.array(uclasm_graph.sym_composite_adj.todense())
     # Flatten multiedges to single edges
     motif.adj[motif.adj>1] = 1
+    np.save("motif_adj.npy", motif.adj)
     motif.V = uclasm_graph.n_nodes
     motif.primMST()
     return motif
@@ -364,7 +366,7 @@ def test_with_caltech():
         print('Currently finding copies of the motif from ' + school)
 
         subgraph_mining = subgraph_matching(source_adj=read_networks(path),
-                                            motif=motif_from_edgelist(motif_E), 
+                                            motif=motif_from_edgelist(motif_E),
                                             MCMC_iterations=5000)  # MCMC steps (macro, grow with size of ntwk)
 
         subgraph_list = subgraph_mining.find_subgraph_hom(iterations=1000)
@@ -402,9 +404,15 @@ def main():
     print("Starting homomorphism search with Glauber chain")
     start_time = time.time()
 
+    source_adj = source_adj_from_uclasm_graph(world_orig)
+    # source_adj = np.load("world_adj.npy")
 
-    subgraph_mining = subgraph_matching(source_adj=source_adj_from_uclasm_graph(world_orig), #np.load("world_adj.npy")
-                                        motif=motif_from_uclasm_graph(tmplt), #motif_from_adj(np.load("motif_adj.npy").astype(int)),
+    # motif = motif_from_uclasm_graph(tmplt)
+    # motif = motif_from_adj(np.load("motif_adj.npy").astype(int))
+    motif=motif_from_edgelist(motif_E)
+
+    subgraph_mining = subgraph_matching(source_adj=source_adj,
+                                        motif=motif,
                                         MCMC_iterations=50,
                                         is_Glauber=True)  # MCMC steps (macro, grow with size of ntwk)
 
